@@ -25,6 +25,42 @@ mongoose.connect(
   process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/comp2537assignment1",
 );
 
+const signUpSchema = Joi.object({
+  name: Joi.string()
+    .trim()
+    .min(1)
+    .max(20)
+    .pattern(/^[a-zA-Z0-9 .,'_-]+$/)
+    .required(),
+  email: Joi.string()
+    .trim()
+    .email({ tlds: { allow: false } })
+    .required(),
+  password: Joi.string().min(8).max(100).required(),
+});
+
+const loginSchema = Joi.object({
+  email: Joi.string()
+    .trim()
+    .email({ tlds: { allow: false } })
+    .required(),
+  password: Joi.string().min(8).max(100).required(),
+});
+
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true,
+  },
+  password: { type: String, required: true },
+});
+
+const User = mongoose.model("User", userSchema);
+
 // Routes
 app.get("/", (req, res) => {
   res.send(`
@@ -64,68 +100,23 @@ app.get("/login", (req, res) => {
     `);
 });
 
-const signupSchema = Joi.object({
-  name: Joi.string()
-    .trim()
-    .min(1)
-    .max(100)
-    .pattern(/^[a-zA-Z0-9 .,'_-]+$/)
-    .required(),
-  email: Joi.string()
-    .trim()
-    .email({ tlds: { allow: false } })
-    .required(),
-  password: Joi.string().min(8).max(100).required(),
-});
-
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true,
-  },
-  password: { type: String, required: true },
-});
-
-const User = mongoose.model("User", userSchema);
-
 app.post("/signingup", async (req, res) => {
   const { name, email, password } = req.body;
 
-  const { error, value } = signupSchema.validate(
+  const { error, value } = signUpSchema.validate(
     { name, email, password },
     { abortEarly: false, stripUnknown: true },
   );
 
   if (error) {
-    const messages = error.details.map((detail) => detail.message).join(" ");
-    res.send(
-      `Validation error: ${messages}
-      <form action="/signup" method="get">
-        <button>Try Again</button>
-      </form>
-      `,
-    );
-    return;
-  }
+    const messages = error.details.map((detail) => detail.message).join("; ");
 
-  const emptyFields = [];
-  if (!value.name) emptyFields.push("Name");
-  if (!value.email) emptyFields.push("Email");
-  if (!value.password) emptyFields.push("Password");
-
-  if (emptyFields.length > 0) {
-    const msg = `The following field${emptyFields.length > 1 ? "s are" : " is"} required: ${emptyFields.join(", ")}.`;
     res.send(
-      msg +
-        `
-      <form action="/signup" method="get">
-        <button>Try Again</button>
-      </form>
-      `,
+      `${messages}
+    <form action="/signup" method="get">
+      <button>Try Again</button>
+    </form>
+    `,
     );
     return;
   }
@@ -156,20 +147,22 @@ app.post("/signingup", async (req, res) => {
 app.post("/loggingin", async (req, res, next) => {
   const { email, password } = req.body;
 
-  const emptyFields = [];
-  if (!email) emptyFields.push("Email");
-  if (!password) emptyFields.push("Password");
+  const { error, value } = loginSchema.validate(
+    { email, password },
+    { abortEarly: false, stripUnknown: true },
+  );
 
-  if (emptyFields.length > 0) {
-    const msg = `The following field${emptyFields.length > 1 ? "s are" : " is"} required: ${emptyFields.join(", ")}.`;
+  if (error) {
+    const messages = error.details.map((detail) => detail.message).join("; ");
+
     res.send(
-      msg +
-        `
-      <form action="/login" method="get">
-        <button>Try Again</button>
-      </form>
-      `,
+      `${messages}
+    <form action="/login" method="get">
+      <button>Try Again</button>
+    </form>
+    `,
     );
+    return;
   }
 
   const user = await User.findOne({ email: email.trim().toLowerCase() });
