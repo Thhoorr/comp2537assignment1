@@ -14,7 +14,8 @@ app.use(express.static("public"));
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
-    name: null,
+    name: "session",
+    username: null,
     authenticated: false,
     resave: false,
     saveUninitialized: false,
@@ -131,7 +132,7 @@ app.post("/signingup", async (req, res) => {
 
     await newUser.save();
 
-    req.session.name = newUser.name;
+    req.session.username = newUser.name;
     req.session.authenticated = true;
 
     res.redirect("/loggedIn");
@@ -180,7 +181,7 @@ app.post("/loggingin", async (req, res, next) => {
   }
 
   req.session.authenticated = true;
-  req.session.name = user.name;
+  req.session.username = user.name;
 
   res.redirect("/loggedIn");
 });
@@ -189,7 +190,7 @@ app.get("/loggedIn", (req, res) => {
   if (!req.session.authenticated) {
     return res.redirect("/login");
   }
-  res.send(`Hello, ${req.session.name}! <br/>
+  res.send(`Hello, ${req.session.username}! <br/>
     <form action="/members" method="get">
       <button>Go to Members Area</button>
     </form>
@@ -205,7 +206,7 @@ app.get("/members", (req, res) => {
   }
   var randomImg = Math.floor(Math.random() * 3) + 1;
   res.send(`
-    <h2>Hello, ${req.session.name}.</h2>
+    <h2>Hello, ${req.session.username}.</h2>
     <figure>
       <img src="${randomImg}.gif" alt="A cute kitten"/>
       <figcaption>A gif from my computer.</figcaption>
