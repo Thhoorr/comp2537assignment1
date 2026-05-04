@@ -7,7 +7,10 @@ const session = require("express-session");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
+const SALT_ROUNDS = 12;
+
 app.use(express.urlencoded({ extended: false }));
+app.use(express.static("public"));
 app.use(
   session({
     secret: "some random whatver",
@@ -44,6 +47,19 @@ app.get("/signup", (req, res) => {
       <input name="email" type="email" placeholder="Email"/><br/>
       <input name="password" type="password" placeholder="Password"/><br/>
       <button type="submit">Sign Up</button>
+    </form>
+    `);
+});
+
+app.get("/login", (req, res) => {
+  if (req.session.authenticated) {
+    res.redirect("/loggedIn");
+  }
+  res.send(`
+    <form action="/loggingin" method="post">
+      <input name="email" type="email" placeholder="Email"/><br/>
+      <input name="password" type="password" placeholder="Password"/><br/>
+      <button type="submit">Log In</button>
     </form>
     `);
 });
@@ -115,7 +131,7 @@ app.post("/signingup", async (req, res) => {
   }
 
   try {
-    const hashedPassword = await bcrypt.hash(value.password, 10);
+    const hashedPassword = await bcrypt.hash(value.password, SALT_ROUNDS);
 
     const newUser = new User({
       name: value.name,
@@ -137,7 +153,88 @@ app.post("/signingup", async (req, res) => {
   }
 });
 
-app.get("/login", (req, res) => {});
+app.post("/loggingin", async (req, res, next) => {
+  const { email, password } = req.body;
+
+  const emptyFields = [];
+  if (!email) emptyFields.push("Email");
+  if (!password) emptyFields.push("Password");
+
+  if (emptyFields.length > 0) {
+    const msg = `The following field${emptyFields.length > 1 ? "s are" : " is"} required: ${emptyFields.join(", ")}.`;
+    res.send(
+      msg +
+        `
+      <form action="/login" method="get">
+        <button>Try Again</button>
+      </form>
+      `,
+    );
+  }
+
+  const user = await User.findOne({ email: email.trim().toLowerCase() });
+  if (!user) {
+    return res.send(
+      'Invalid email or password. <a href="/login">Try again</a>.',
+    );
+  }
+
+  const passwordMatch = await bcrypt.compare(password, user.password);
+  if (!passwordMatch) {
+    return res.send(
+      'Invalid email or password. <a href="/login">Try again</a>.',
+    );
+  }
+
+  req.session.authenticated = true;
+  req.session.name = user.name;
+  req.session.email = user.email;
+
+  res.redirect("/loggedIn");
+});
+
+app.get("/loggedIn", (req, res) => {
+  if (!req.session.authenticated) {
+    return res.redirect("/login");
+  }
+  res.send(`Hello, ${req.session.name}! <br/>
+    <form action="/members" method="get">
+      <button>Go to Members Area</button>
+    </form>
+    <form action="/logout" method="post">
+      <button>Log Out</button>
+    </form>
+    `);
+});
+
+app.get("/members", (req, res) => {
+  if (!req.session.authenticated) {
+    return res.redirect("/login");
+  }
+  var randomImg = Math.floor(Math.random() * 3) + 1;
+  res.send(`
+    <h2>Hello, ${req.session.name}.</h2>
+    <figure>
+      <img src="${randomImg}.gif" alt="A cute kitten"/>
+      <figcaption>A gif from my computer.</figcaption>
+    </figure>
+    <form action="/loggedIn" method="get">
+      <button>Back to Home</button>
+    </form>
+    <form action="/logout" method="post">
+      <button>Log Out</button>
+    </form>
+      `);
+});
+
+app.post("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Error destroying session:", err);
+    }
+    res.redirect("/");
+  });
+});
 
 // 404 handler
 app.use((req, res) => {
