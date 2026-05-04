@@ -13,17 +13,16 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static("public"));
 app.use(
   session({
-    secret: "some random whatver",
+    secret: process.env.SESSION_SECRET,
     name: null,
     authenticated: false,
     resave: false,
     saveUninitialized: false,
+    cookie: { maxAge: 1000 * 60 * 60 },
   }),
 );
 
-mongoose.connect(
-  process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/comp2537assignment1",
-);
+mongoose.connect(process.env.MONGODB_URI || process.env.LOCAL_DB_URI);
 
 const signUpSchema = Joi.object({
   name: Joi.string()
@@ -109,7 +108,7 @@ app.post("/signingup", async (req, res) => {
   );
 
   if (error) {
-    const messages = error.details.map((detail) => detail.message).join("; ");
+    const messages = error.details.map((detail) => detail.message).join("\n");
 
     res.send(
       `${messages}
@@ -134,6 +133,7 @@ app.post("/signingup", async (req, res) => {
 
     req.session.name = newUser.name;
     req.session.authenticated = true;
+
     res.redirect("/loggedIn");
   } catch (err) {
     if (err.code === 11000) {
@@ -153,7 +153,7 @@ app.post("/loggingin", async (req, res, next) => {
   );
 
   if (error) {
-    const messages = error.details.map((detail) => detail.message).join("; ");
+    const messages = error.details.map((detail) => detail.message).join("\n");
 
     res.send(
       `${messages}
@@ -181,7 +181,6 @@ app.post("/loggingin", async (req, res, next) => {
 
   req.session.authenticated = true;
   req.session.name = user.name;
-  req.session.email = user.email;
 
   res.redirect("/loggedIn");
 });
