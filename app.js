@@ -3,7 +3,7 @@ const express = require("express");
 const Joi = require("joi");
 const app = express();
 const port = process.env.PORT || 3000;
-const session = require("express-session");
+const session = require("cookie-session");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
