@@ -168,7 +168,7 @@ app.get("/loggedIn", (req, res) => {
   if (!req.session.authenticated) {
     return res.redirect("/login");
   }
-  res.render("loggedIn", {
+  res.render("loggedin", {
     username: req.session.username,
   });
 });
