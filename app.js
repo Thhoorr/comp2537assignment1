@@ -237,7 +237,7 @@ app.post("/logout", (req, res) => {
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).send("Not Found");
+  res.status(404).render("404");
 });
 
 // Error handler
