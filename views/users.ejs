@@ -1,0 +1,18 @@
+<%- include('templates/header') %> <%- include('templates/navbar') %>
+<div class="container my-5">
+  <div class="p-5 text-center bg-body-tertiary rounded-3">
+    <h1 class="text-body-emphasis">Users</h1>
+    <% for (user of users) { %>
+    <div class="py-2">
+        <p class="d-inline lead"><%= user.name %> (<%= user.user_type %>)</p>
+        <form class="d-inline" action="/admin/promote/<%= user.email %>" method="post">
+          <button class="btn btn-primary" type="submit">Promote to admin</button>
+        </form>
+        <form class="d-inline" action="/admin/demote/<%= user.email %>" method="post">
+          <button class="btn btn-danger" type="submit">Demote to user</button>
+        </form> 
+    </div>
+    <% } %>
+  </div>
+</div>
+<%- include('templates/footer') %>

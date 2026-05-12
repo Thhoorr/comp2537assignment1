@@ -1,0 +1,23 @@
+<%- include('templates/header') %> <%- include('templates/navbar') %>
+
+<div class="container my-5">
+  <div class="p-5 text-center bg-body-tertiary rounded-3">
+    <h1 class="text-body-emphasis">Hello, <%= username %></h1>
+    <div class="col-lg-6 col-xxl-4 my-5 mx-auto">
+      <div class="d-grid gap-2">
+        <form action="/members" method="get">
+          <button class="btn btn-primary" type="submit">
+            Go to members' area
+          </button>
+        </form>
+        <form action="/logout" method="post">
+          <button class="btn btn-outline-secondary" type="submit">
+            Log Out
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('templates/footer') %>

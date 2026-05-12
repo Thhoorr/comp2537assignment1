@@ -1,0 +1,39 @@
+<%- include('templates/header') %> <%- include('templates/navbar') %>
+
+<div class="container my-5">
+  <div class="text-center bg-body-tertiary rounded-3">
+    <h1 class="text-body-emphasis">Hello, <%= username %></h1>
+    <div class="col-lg-6 col-xxl-4 my-5 w-75 mx-auto">
+      <div class="container py-5" id="featured-3">
+        <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+          <div class="feature col">
+            <div class="feature col">
+              <img src="/2.gif" alt="a gif" class="w-100" />
+            </div>
+          </div>
+          <div class="feature col">
+            <div class="feature col">
+              <img src="/1.gif" alt="a gif" class="w-100" />
+            </div>
+          </div>
+          <div class="feature col">
+            <div class="feature col">
+              <img src="/3.gif" alt="a gif" class="w-100" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="d-grid gap-2 pt-4">
+        <form action="/loggedIn" method="get">
+          <button class="btn btn-primary" type="submit">Go Back</button>
+        </form>
+        <form action="/logout" method="post">
+          <button class="btn btn-outline-secondary" type="submit">
+            Log Out
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('templates/footer') %>
